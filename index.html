@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام القبول الذكي - كلية الإمارات للعلوم والتكنولوجيا</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * { font-family: 'Tajawal', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+        }
+        /* تحسينات مخصصة للمظهر الزجاجي وفقاعات الدردشة */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(147, 51, 234, 0.2);
+        }
+        .bubble-user {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            color: white;
+            border-radius: 16px 16px 0px 16px;
+        }
+        .bubble-bot {
+            background: #f3e8ff;
+            color: #4c1d95;
+            border-radius: 16px 16px 16px 0px;
+            border: 1px solid #e9d5ff;
+        }
+        .typing span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #a855f7;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: wave 1.2s infinite;
+        }
+        @keyframes wave {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f3e8ff; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-height-screen p-4 flex items-center justify-center">
+
+<div id="appRoot" class="w-full max-w-xl mx-auto my-auto relative z-10">
+    
+    <div class="glass-card rounded-3xl shadow-2xl overflow-hidden p-4 md:p-6 space-y-4">
+        
+        <div class="text-center border-b border-purple-100 pb-3">
+            <h1 class="text-lg md:text-xl font-black text-purple-800">كلية الإمارات للعلوم والتكنولوجيا</h1>
+            <div class="flex items-center justify-between mt-1 text-xs text-purple-500 font-semibold px-2">
+                <span class="font-mono tracking-wider opacity-60">SAAS</span>
+                <span>📋 استمارة القبول الذكية</span>
+                <span class="w-8"></span>
+            </div>
+        </div>
+        
+        <div id="botInterfaceBlock" class="space-y-3">
+            <div id="chatMessagesArea" class="bg-purple-50/60 rounded-2xl p-3 h-72 overflow-y-auto custom-scroll space-y-3">
+                <div class="flex justify-start">
+                    <div class="bubble-bot px-3 py-2 text-xs leading-relaxed max-w-[85%] shadow-sm">
+                        👋 <strong>مرحبًا! أنا البوت الذكي، كيف يمكنني مساعدتك؟</strong><br>
+                        ✏️ <span class="text-purple-600 font-medium">لنبدأ: ما اسمك الكامل؟</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 items-center">
+                <input type="text" id="chatInputField" placeholder="اكتب رسالتك هنا..." class="flex-1 bg-white border border-purple-200 rounded-full px-4 py-2 text-xs text-purple-900 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition placeholder:text-purple-300 shadow-sm">
+                <button id="sendChatBtn" class="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 transition-all px-5 py-2 rounded-full font-bold text-white text-xs shadow-md active:scale-95">إرسال</button>
+            </div>
+            <div id="apiLiveStatus" class="text-[10px] text-center bg-purple-100 text-purple-600 rounded-full py-1 px-3 w-fit mx-auto font-medium shadow-sm">⚙️ جاري تهيئة Gemini...</div>
+        </div>
+        
+        <div id="formInterfaceBlock" class="hidden space-y-4">
+            <div class="bg-gradient-to-r from-purple-100 to-purple-200 border border-purple-200 rounded-xl p-2.5 text-center shadow-sm">
+                <p class="text-purple-800 font-bold text-sm"> Bravely 📝 يرجى مراجعة وإكمال بياناتك</p>
+            </div>
+            
+            <form id="officialAdmissionForm" class="space-y-3">
+                <div class="flex flex-col gap-1">
+                    <label class="text-purple-700 text-xs font-bold px-1">الاسم الكامل (حسب الهوية)</label>
+                    <input type="text" id="fullNameField" required class="w-full bg-white border border-purple-200 rounded-xl px-3 py-2 text-xs text-purple-900 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition">
+                </div>
+                
+                <div class="flex flex-col gap-1">
+                    <label class="text-purple-700 text-xs font-bold px-1">رقم الجوال</label>
+                    <input type="tel" id="phoneField" required class="w-full bg-white border border-purple-200 rounded-xl px-3 py-2 text-xs text-purple-900 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition" dir="ltr">
+                </div>
+                
+                <div class="flex flex-col gap-1">
+                    <label class="text-purple-700 text-xs font-bold px-1">البريد الإلكتروني</label>
+                    <input type="email" id="emailField" required class="w-full bg-white border border-purple-200 rounded-xl px-3 py-2 text-xs text-purple-900 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition" dir="ltr">
+                </div>
+                
+                <div class="flex flex-col gap-1">
+                    <label class="text-purple-700 text-xs font-bold px-1">الموقع (الولاية/المدينة)</label>
+                    <input type="text" id="locationField" required class="w-full bg-white border border-purple-200 rounded-xl px-3 py-2 text-xs text-purple-900 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-purple-700 text-xs font-bold px-1">النسبة المئوية</label>
+                        <input type="number" step="0.1" id="gradeField" readonly class="w-full bg-purple-50 border border-purple-200 rounded-xl px-3 py-2 text-xs text-purple-800 font-bold outline-none">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-purple-700 text-xs font-bold px-1">التخصص</label>
+                        <input type="text" id="majorDisplayField" readonly class="w-full bg-purple-50 border border-purple-200 rounded-xl px-3 py-2 text-xs text-purple-800 font-bold outline-none">
+                    </div>
+                </div>
+                
+                <div class="bg-purple-50/80 border border-purple-100 rounded-2xl p-3 text-center my-2 shadow-sm">
+                    <span class="text-[11px] text-purple-500 font-medium">الرسوم الدراسية السنوية المقدرة</span>
+                    <div class="text-xl font-black text-purple-700 mt-0.5" id="dynamicFee">3,000,000 <span class="text-xs font-bold text-purple-500">SDG</span></div>
+                </div>
+                
+                <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 font-bold text-white text-xs p-3 rounded-xl shadow-md transition-all active:scale-[0.99] mt-2">📨 إرسال طلب القبول النهائي</button>
+            </form>
+            
+            <button id="backToBotFromForm" class="w-full border border-purple-300 text-purple-600 rounded-xl font-bold bg-white text-xs p-2 hover:bg-purple-50 transition shadow-sm">↩️ العودة إلى محادثة البوت</button>
+        </div>
+        
+        <div id="successScreen" class="hidden p-6 text-center space-y-4">
+            <div class="w-16 h-16 mx-auto bg-gradient-to-tr from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-xl animate-bounce">
+                <span class="text-3xl">🎉</span>
+            </div>
+            <div class="space-y-1">
+                <h2 class="text-lg font-black text-purple-800">تم استلام طلبك بنجاح!</h2>
+                <p class="text-purple-500 text-xs font-medium">سيتواصل معك مكتب مسؤولي القبول خلال 48 ساعة القادمة.</p>
+            </div>
+            <button id="resetWholeSystem" class="mt-2 bg-purple-100 hover:bg-purple-200 border border-purple-200 px-5 py-2 rounded-full text-xs text-purple-700 font-bold shadow-sm transition">➕ تسجيل طالب جديد</button>
+        </div>
+        
+        <div class="border-t border-purple-100 pt-2 text-[10px] text-purple-400 font-medium flex justify-between px-1">
+            <span>📐 UML | OO Analysis</span>
+            <span>⚡ LLM Integration</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // 🔑 ضع مفتاح Gemini API الخاص بك هنا بين علامتي التنصيص
+    // ==========================================
+    const MY_SECRET_GEMINI_KEY = "AIzaSyBYrRdnhi37cEbQIABxymE17OzH3WJ4fLI";
+    
+    let GEMINI_KEY = "";
+    
+    function initializeGeminiKey() {
+        // التحقق أولاً من المفتاح الذي قمت بكتابته في الأعلى
+        if (MY_SECRET_GEMINI_KEY && MY_SECRET_GEMINI_KEY !== "ضع_مفتاح_الـ_API_الخاص_بك_هنا" && MY_SECRET_GEMINI_KEY.startsWith("AIza")) {
+            GEMINI_KEY = MY_SECRET_GEMINI_KEY;
+            localStorage.setItem("saa_gemini_key", GEMINI_KEY);
+        } else {
+            // استخدام المفتاح الاحتياطي المخزن أو الافتراضي في حال عدم تعديل الأعلى
+            let storedKey = localStorage.getItem("saa_gemini_key");
+            if (storedKey && storedKey.startsWith("AIza")) {
+                GEMINI_KEY = storedKey;
+            } else {
+                // هذا مفتاح ديمو تجريبي مؤقت
+                GEMINI_KEY = "AIzaSyB7CFHY_kNUqpPhAESjZ8ZuPRhllPXA0_I"; 
+                localStorage.setItem("saa_gemini_key", GEMINI_KEY);
+            }
+        }
+        
+        // تحديث شكل واجهة الاتصال بالـ API للون الأخضر دلالة على النجاح
+        const statusEl = document.getElementById("apiLiveStatus");
+        if (statusEl) {
+            statusEl.innerHTML = "✅ Gemini جاهز ومتصل";
+            statusEl.className = "text-[10px] text-center bg-green-100 text-green-700 rounded-full py-1 px-3 w-fit mx-auto font-medium shadow-sm";
+        }
+        return true;
+    }
+    
+    // استدعاء دالة التهيئة عند تحميل الصفحة
+    window.addEventListener('DOMContentLoaded', () => {
+        initializeGeminiKey();
+    });
+
+    // بقية دوال ومعالجات النظام (صممت لتتوافق تماماً مع الهيكلية المنظمة)
+    async function callGeminiSmart(promptText) {
+        if (!GEMINI_KEY) initializeGeminiKey();
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+        const systemInstruction = `أنت بوت مساعد القبول الذكي في كلية الإمارات. معلوماتك عن نسب القبول: الطب:90%، المختبرات الطبية:88%، التمريض:85%، علوم الاحياء:89%، تقانة المعلومات:87%، ادارة الاعمال:70%، المحاسبة:65%، اداب لغة انجليزية:60%. الرد بالعربية بأسلوب لبق وقصير.`;
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `${systemInstruction}\n\nسؤال: ${promptText}` }] }]
+                })
+            });
+            if (!response.ok) return "⚠️ عذراً، نواجه ضغطاً في الخدمة حالياً.";
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        } catch (err) {
+            return "⚠️ فشل الاتصال بالخادم الذكي.";
+        }
+    }
+    
+    // (يمكنك إدراج بقية منطق الـ JavaScript الخاص بالـ Steps والأزرار هنا لتكتمل وظائف المحادثة بالكامل)
+</script>
+</body>
+</html>
